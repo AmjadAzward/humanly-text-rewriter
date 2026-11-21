@@ -4,6 +4,7 @@ const COPY_HTML = '<svg class="ic"><use href="#i-copy"/></svg> Copy';
 const REWRITE_HTML = '<svg class="ic"><use href="#i-spark"/></svg> Rewrite text <svg class="ic"><use href="#i-arrow"/></svg>';
 
 const strengthDescriptions = {
+  Polish: "Fixes grammar and clumsy phrasing only. Your own words stay.",
   Light: "Small edits while keeping your original wording.",
   Medium: "Balanced changes to wording and flow.",
   Strong: "More noticeable rewriting while preserving the meaning."
@@ -58,6 +59,40 @@ $("clearHistory").addEventListener("click", async () => {
   loadHistory();
 });
 
+function renderReview(findings) {
+  const list = $("reviewList");
+  list.textContent = "";
+  if (!findings.length) {
+    const ok = document.createElement("div");
+    ok.className = "review-empty";
+    ok.textContent = "No stiff or generic phrasing found.";
+    list.append(ok);
+  }
+  findings.forEach((f) => {
+    const row = document.createElement("div");
+    row.className = "review-item";
+    const mark = document.createElement("mark");
+    mark.textContent = f.phrase;
+    const count = f.count > 1 ? ` (x${f.count})` : "";
+    const why = document.createElement("span");
+    why.className = "why";
+    why.textContent = `${f.reason} ${f.suggestion}${count}`;
+    row.append(mark, why);
+    list.append(row);
+  });
+  $("reviewPanel").hidden = false;
+}
+$("reviewBtn").addEventListener("click", async () => {
+  const text = $("sourceText").value.trim();
+  if (!text) return showError("Add some text to review first.");
+  hideError();
+  const response = await fetch("/api/review", {
+    method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text})
+  });
+  renderReview((await response.json()).findings || []);
+});
+$("closeReview").addEventListener("click", () => { $("reviewPanel").hidden = true; });
+
 let abortController = null;
 $("cancelBtn").addEventListener("click", () => { if (abortController) abortController.abort(); });
 
@@ -106,6 +141,7 @@ async function rewrite() {
         tone:$("tone").value,
         strength:$("strength").value,
         model:$("model") ? $("model").value : "",
+        voice_sample:$("voiceSample").value,
         previous_text:$("previousText").value
       })
     });

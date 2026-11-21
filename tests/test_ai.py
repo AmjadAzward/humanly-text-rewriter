@@ -25,6 +25,31 @@ class HelperTests(unittest.TestCase):
         self.assertEqual("".join(chunks).split(), text.split())
 
 
+class ReviewAndVoiceTests(unittest.TestCase):
+    def test_review_flags_stiff_phrases_and_counts_repeats(self):
+        from app.review import review_text
+        found = review_text("It is important to note this. Moreover, we utilize tools. Moreover, we leverage them.")
+        phrases = [f["phrase"].lower() for f in found]
+        self.assertIn("moreover", phrases)
+        self.assertTrue(any(f["phrase"].lower() == "moreover" and f["count"] == 2 for f in found))
+        self.assertTrue(any("utiliz" in p for p in phrases))
+
+    def test_review_clean_text_has_no_findings(self):
+        from app.review import review_text
+        self.assertEqual(review_text("I fixed the bug and shipped it on Friday."), [])
+
+    def test_voice_sample_reaches_the_prompt(self):
+        from app.prompt import build_user_prompt
+        prompt = build_user_prompt("Hello.", "Natural", "Polish", "", "I write short. Like this.")
+        self.assertIn("<voice>", prompt)
+        self.assertIn("I write short.", prompt)
+        self.assertNotIn("<voice>", build_user_prompt("Hello.", "Natural", "Polish", "", ""))
+
+    def test_polish_strength_has_guide(self):
+        from app.prompt import STRENGTH_GUIDE
+        self.assertIn("Polish", STRENGTH_GUIDE)
+
+
 class NumberWordTests(unittest.TestCase):
     def test_spelled_out_numbers_count_as_kept(self):
         self.assertEqual(ai._missing({"12", "45"}, "a team of twelve and forty-five staff"), set())

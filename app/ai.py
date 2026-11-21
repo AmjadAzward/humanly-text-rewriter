@@ -57,7 +57,7 @@ def _chat(messages, model=None, max_tokens=None):
 
 def _clean(output):
     """Strip tags, 'Here is...' preambles and wrapping quotes the model sometimes adds."""
-    output = re.sub(r"</?(text|previous)>", "", output).strip()
+    output = re.sub(r"</?(text|previous|voice)>", "", output).strip()
     output = re.sub(r"^(here(['’]s| is)[^\n]*:|rewrite[d]?( text)?:|sure[^\n]*:)\s*", "", output, flags=re.I).strip()
     if len(output) > 1 and output[0] in "\"“" and output[-1] in "\"”" and output.count('"') + output.count("“") <= 2:
         output = output[1:-1].strip()
@@ -143,7 +143,7 @@ def _split_chunks(text):
     return chunks or [text]
 
 
-def _rewrite_chunk(chunk, tone, strength, previous, model=None):
+def _rewrite_chunk(chunk, tone, strength, previous, model=None, voice_sample=""):
     lead = re.match(r"\s*", chunk).group(0)
     trail = re.search(r"\s*$", chunk).group(0)
     body = chunk.strip()
@@ -151,7 +151,7 @@ def _rewrite_chunk(chunk, tone, strength, previous, model=None):
         return chunk, None
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": build_user_prompt(body, tone, strength, previous)},
+        {"role": "user", "content": build_user_prompt(body, tone, strength, previous, voice_sample)},
     ]
     need = _facts(body)
     best = None
@@ -187,21 +187,21 @@ def keep_model_warm(model=None):
         pass
 
 
-def rewrite_iter(text, tone, strength, previous_text="", model=None):
+def rewrite_iter(text, tone, strength, previous_text="", model=None, voice_sample=""):
     """Yield (number, total, rewritten_chunk, note) as each chunk finishes."""
     chunks = _split_chunks(text)
     previous = previous_text
     for number, chunk in enumerate(chunks, 1):
-        rewritten, note = _rewrite_chunk(chunk, tone, strength, previous, model)
+        rewritten, note = _rewrite_chunk(chunk, tone, strength, previous, model, voice_sample)
         yield number, len(chunks), rewritten, note
         previous = rewritten.strip()[-600:]
     keep_model_warm(model)
 
 
-def rewrite_text(text, tone, strength, previous_text="", model=None):
+def rewrite_text(text, tone, strength, previous_text="", model=None, voice_sample=""):
     """Returns (rewritten_text, warnings) where warnings is a list of strings."""
     results, warnings = [], []
-    for number, _total, rewritten, note in rewrite_iter(text, tone, strength, previous_text, model):
+    for number, _total, rewritten, note in rewrite_iter(text, tone, strength, previous_text, model, voice_sample):
         results.append(rewritten)
         if note:
             warnings.append(f"Section {number}: {note}.")

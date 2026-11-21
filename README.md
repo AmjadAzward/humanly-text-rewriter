@@ -37,7 +37,9 @@ Runs fully on your own machine with a free local AI.
 
 ### Rewriting
 - **7 tones:** Natural, Professional, Friendly, Casual, Academic, Persuasive, Concise
-- **3 strengths:** Light (small edits), Medium (reworded flow), Strong (sentences rebuilt)
+- **4 strengths:** Polish (fix grammar and clumsy phrasing only, your words stay), Light, Medium (reworded flow), Strong (sentences rebuilt)
+- **Match my voice:** paste a sample of your own writing and rewrites follow your sentence style and word choice
+- **Review phrasing:** instant, model-free check that flags stiff phrases, very long sentences, repeated openers and monotone rhythm so you can fix them by hand
 - **Previous section field** so new text flows from what came before
 - **Model switch** between a fast model and a higher quality one
 - **Regenerate** for a fresh take, **Cancel** for long jobs, **Ctrl+Enter** to run
@@ -138,7 +140,8 @@ app/
   __init__.py            App factory and config
   routes.py              Pages and REST API
   ai.py                  Model calls, chunking, fact checks, cleanup
-  prompt.py              System prompt, tone and strength guides
+  prompt.py              System prompt, tone and strength guides, voice matching
+  review.py              Instant stiff-phrase and rhythm review
   db.py                  SQLite access
   templates/index.html   User interface
   static/                CSS, JavaScript, favicon
@@ -152,6 +155,7 @@ tests/test_ai.py         Unit tests
 | GET | `/` | The app |
 | POST | `/api/rewrite/stream` | Rewrite with live progress, saved to history |
 | POST | `/api/rewrite` | Rewrite in a single response |
+| POST | `/api/review` | Flag stiff or generic phrasing (no model needed) |
 | GET | `/api/history` | Last 50 rewrites |
 | GET, DELETE | `/api/history/<id>` | Fetch or delete one rewrite |
 | DELETE | `/api/history` | Clear history |

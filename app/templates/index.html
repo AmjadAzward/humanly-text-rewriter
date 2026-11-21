@@ -75,6 +75,7 @@
         <textarea id="sourceText" placeholder="Paste or write the text you want to rewrite…" maxlength="30000"></textarea>
         <div class="card-foot">
           <label class="link-btn" for="fileInput"><svg class="ic"><use href="#i-upload"/></svg> Import .txt</label><input type="file" id="fileInput" accept=".txt,text/plain" hidden>
+          <button class="link-btn" id="reviewBtn">Review phrasing</button>
           <button class="link-btn" id="clearInput">Clear</button>
         </div>
       </section>
@@ -84,6 +85,16 @@
         <div class="card-foot tip">Helps the new section connect naturally to what came before.</div>
       </section>
     </div>
+
+    <section class="card review-panel" id="reviewPanel" hidden>
+      <div class="card-head"><strong>Phrasing review</strong><button class="link-btn" id="closeReview">Close</button></div>
+      <div id="reviewList" class="review-list"></div>
+    </section>
+
+    <details class="card voice-card">
+      <summary><strong>Match my voice</strong><span class="optional">Optional</span><span class="subtle">Paste a sample of your own writing</span></summary>
+      <textarea id="voiceSample" placeholder="Paste a few paragraphs you wrote yourself. Rewrites will follow your sentence style, word choice and tone, without copying your content." maxlength="6000"></textarea>
+    </details>
 
     <div class="action-row">
       <p class="privacy-note"><svg class="ic"><use href="#i-lock"/></svg> Your meaning and details are preserved.</p>

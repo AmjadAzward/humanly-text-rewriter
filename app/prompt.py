@@ -31,6 +31,8 @@ TONE_GUIDE = {
 }
 
 STRENGTH_GUIDE = {
+    "Polish": ("Polish only. Keep the author's own words, order and sentence structure. Fix grammar, typos, clumsy or repeated "
+               "phrasing and unclear sentences, and nothing else. Most sentences should stay exactly as written."),
     "Light": "Make small edits only. Keep most of the original wording and sentence structure; fix stiff or clumsy phrases.",
     "Medium": "Rewrite wording and flow throughout. Change many phrases and some sentence structures, keeping the original order of ideas.",
     "Strong": ("Rewrite thoroughly. Rebuild most sentences from scratch: change the sentence structure, split or merge sentences, "
@@ -39,7 +41,14 @@ STRENGTH_GUIDE = {
 }
 
 
-def build_user_prompt(text, tone, strength, previous_text):
+def build_user_prompt(text, tone, strength, previous_text, voice_sample=""):
+    voice = (voice_sample or "").strip()[:3000]
+    voice_block = (
+        "\nMatch this author's voice. Study how they write: sentence length, word choice, punctuation habits and formality, "
+        "then write the way they do. Do NOT copy their content or facts, and do not mention them:\n"
+        f"<voice>\n{voice}\n</voice>\n"
+        if voice else ""
+    )
     previous = (previous_text or "").strip()
     context = (
         f"\nFor flow only, this is how the previous section ended (do NOT rewrite or repeat it):\n<previous>\n{previous}\n</previous>\n"
@@ -47,7 +56,7 @@ def build_user_prompt(text, tone, strength, previous_text):
     )
     return f"""Tone: {tone}. {TONE_GUIDE.get(tone, "")}
 Rewrite strength: {strength}. {STRENGTH_GUIDE.get(strength, "")}
-{context}
+{voice_block}{context}
 Rewrite this section. Keep all of its points:
 <text>
 {text}
