@@ -108,13 +108,19 @@
       <div class="card-head">
         <div class="result-title"><strong>Rewritten text</strong><span class="ready-tag">Ready</span><span class="change-stat" id="changeStats" hidden></span></div>
         <div class="result-actions">
+          <button class="ghost-btn" id="compareBtn">Compare</button>
+          <button class="ghost-btn" id="meaningBtn">Check meaning</button>
           <button class="ghost-btn" id="regenBtn"><svg class="ic"><use href="#i-spark"/></svg> Regenerate</button>
           <button class="ghost-btn" id="copyBtn"><svg class="ic"><use href="#i-copy"/></svg> Copy</button>
           <button class="ghost-btn" id="downloadBtn"><svg class="ic"><use href="#i-down"/></svg> Export</button>
         </div>
       </div>
       <div class="warn-banner" id="warnBanner" hidden></div>
-      <div class="result-content" id="resultText"></div>
+      <div class="meaning-panel" id="meaningPanel" hidden></div>
+      <div class="result-split" id="resultSplit">
+        <div class="orig-pane" id="origPane" hidden><span class="pane-label">Original</span><div id="origText"></div></div>
+        <div class="result-content" id="resultText"></div>
+      </div>
       <div class="card-foot"><span><span id="resultMeta">Your rewrite is ready.</span><span class="legend"><mark>Highlighted</mark> = changed words</span></span><button class="link-btn" id="useAsInput">Use as new input</button></div>
     </section>
   </section>

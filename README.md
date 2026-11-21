@@ -52,6 +52,7 @@ Runs fully on your own machine with a free local AI.
 
 ### Review
 - Word-level diff with highlighted changes and a "X of Y words changed" count
+- **Compare** shows the original beside the rewrite, and **Check meaning** flags original sentences whose key terms mostly disappeared (no model needed; synonyms can cause false flags)
 - Copy, export to `.txt`, import `.txt`, and chain rewrites with "Use as new input"
 - History of the last 50 rewrites stored in local SQLite
 
@@ -142,6 +143,7 @@ app/
   ai.py                  Model calls, chunking, fact checks, cleanup
   prompt.py              System prompt, tone and strength guides, voice matching
   review.py              Instant stiff-phrase and rhythm review
+  meaning.py             Key-term coverage check for rewrites
   db.py                  SQLite access
   templates/index.html   User interface
   static/                CSS, JavaScript, favicon
@@ -156,6 +158,7 @@ tests/test_ai.py         Unit tests
 | POST | `/api/rewrite/stream` | Rewrite with live progress, saved to history |
 | POST | `/api/rewrite` | Rewrite in a single response |
 | POST | `/api/review` | Flag stiff or generic phrasing (no model needed) |
+| POST | `/api/meaning` | Flag original sentences that may be missing from a rewrite |
 | GET | `/api/history` | Last 50 rewrites |
 | GET, DELETE | `/api/history/<id>` | Fetch or delete one rewrite |
 | DELETE | `/api/history` | Clear history |

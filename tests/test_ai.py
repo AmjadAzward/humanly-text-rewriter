@@ -50,6 +50,22 @@ class ReviewAndVoiceTests(unittest.TestCase):
         self.assertIn("Polish", STRENGTH_GUIDE)
 
 
+class MeaningTests(unittest.TestCase):
+    def test_flags_sentence_whose_claim_disappeared(self):
+        from app.meaning import check_meaning
+        original = "Managers compare candidates across several countries. Applicants expect flexible schedules and remote options."
+        rewritten = "Applicants expect flexible schedules and remote options."
+        flagged = check_meaning(original, rewritten)
+        self.assertEqual(len(flagged), 1)
+        self.assertIn("Managers", flagged[0]["sentence"])
+
+    def test_reworded_but_covered_sentence_is_not_flagged(self):
+        from app.meaning import check_meaning
+        original = "The company launched the Orion platform in 2023 with twelve engineers."
+        rewritten = "In 2023 the Orion platform was launched by the company, using twelve engineers."
+        self.assertEqual(check_meaning(original, rewritten), [])
+
+
 class NumberWordTests(unittest.TestCase):
     def test_spelled_out_numbers_count_as_kept(self):
         self.assertEqual(ai._missing({"12", "45"}, "a team of twelve and forty-five staff"), set())

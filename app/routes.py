@@ -5,6 +5,7 @@ import json
 from .ai import rewrite_text, rewrite_iter, available_models, AIConfigurationError, AIRequestError
 from .db import get_db
 from .review import review_text
+from .meaning import check_meaning
 
 main = Blueprint("main", __name__)
 
@@ -20,6 +21,14 @@ def api_review():
     data = request.get_json(silent=True) or {}
     text = (data.get("text") or "")[:30000]
     return jsonify(findings=review_text(text))
+
+
+@main.post("/api/meaning")
+def api_meaning():
+    data = request.get_json(silent=True) or {}
+    original = (data.get("original") or "")[:30000]
+    rewritten = (data.get("rewritten") or "")[:60000]
+    return jsonify(flagged=check_meaning(original, rewritten))
 
 
 def _line(obj):

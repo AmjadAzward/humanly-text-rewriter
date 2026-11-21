@@ -191,7 +191,49 @@ async function rewrite() {
 // ---- Word-level diff: highlight words that differ from the original ----
 function normWord(w) { return w.toLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ""); }
 
+let lastOriginal = "";
+$("compareBtn").addEventListener("click", () => {
+  const pane = $("origPane");
+  pane.hidden = !pane.hidden;
+  $("origText").textContent = lastOriginal;
+  $("resultSplit").classList.toggle("split", !pane.hidden);
+  $("compareBtn").textContent = pane.hidden ? "Compare" : "Hide original";
+});
+$("meaningBtn").addEventListener("click", async () => {
+  const panel = $("meaningPanel");
+  panel.hidden = false;
+  panel.textContent = "Checking...";
+  const response = await fetch("/api/meaning", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({original: lastOriginal, rewritten: $("resultText").textContent})
+  });
+  const flagged = (await response.json()).flagged || [];
+  panel.textContent = "";
+  const title = document.createElement("strong");
+  title.textContent = flagged.length
+    ? `Worth a second look: ${flagged.length} original sentence${flagged.length > 1 ? "s" : ""} may not be fully covered.`
+    : "Every original sentence's key terms still appear in the rewrite.";
+  panel.append(title);
+  flagged.forEach((f) => {
+    const row = document.createElement("div");
+    row.className = "meaning-item";
+    const quote = document.createElement("mark");
+    quote.textContent = f.sentence;
+    const why = document.createElement("span");
+    why.className = "why";
+    why.textContent = `Only ${f.coverage}% of its key terms appear. Missing: ${f.missing.join(", ")}`;
+    row.append(quote, why);
+    panel.append(row);
+  });
+  const note = document.createElement("span");
+  note.className = "why";
+  note.textContent = "This compares key words, so a sentence reworded with synonyms can be flagged even when it is fine.";
+  panel.append(note);
+});
+
 function renderDiff(original, rewritten) {
+  lastOriginal = original;
+  $("meaningPanel").hidden = true;
   const out = $("resultText");
   out.textContent = "";
   const tokens = rewritten.split(/(\s+)/);          // keeps whitespace/newlines
