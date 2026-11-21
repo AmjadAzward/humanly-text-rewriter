@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Humanly rewrites your text in a natural, human voice while keeping your meaning.">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="color-scheme" content="light dark">
+  <title>Humanly — Write like a human</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16z" fill="currentColor"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></g></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></g></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 012-2h9"/></g></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></g></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></g></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g></symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/" aria-label="Humanly home">
+      <img src="{{ url_for('static', filename='favicon.svg') }}" alt="" width="32" height="32">
+      <span>Humanly</span>
+    </a>
+    <nav class="tabs" aria-label="Main">
+      <button class="tab active" id="newRewriteBtn"><svg class="ic"><use href="#i-spark"/></svg><span>Rewrite</span></button>
+      <button class="tab" id="historyToggle"><svg class="ic"><use href="#i-clock"/></svg><span>History</span><span class="count" id="historyCount">0</span></button>
+    </nav>
+    <span class="local-badge"><svg class="ic"><use href="#i-lock"/></svg> Private &amp; local</span>
+  </div>
+</header>
+
+<main class="page">
+  <section id="editorView">
+    <div class="hero">
+      <h1>Make it sound <span class="grad">like you.</span></h1>
+      <p>Paste your text, pick a tone, and get a natural rewrite that keeps your meaning.</p>
+    </div>
+
+    <div class="controls">
+      <label class="field"><span>Tone</span>
+        <select id="tone">
+          {% for tone in tones %}<option value="{{ tone }}">{{ tone }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>Strength</span>
+        <select id="strength">
+          {% for strength in strengths %}<option value="{{ strength }}" {% if strength == 'Medium' %}selected{% endif %}>{{ strength }}</option>{% endfor %}
+        </select>
+      </label>
+      {% if models|length > 1 %}
+      <label class="field"><span>Model</span>
+        <select id="model">
+          {% for m in models %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <p class="strength-note" id="strengthNote">Balanced changes to wording and flow.</p>
+    </div>
+
+    <div class="editor-grid">
+      <section class="card">
+        <div class="card-head"><strong>Original text</strong><span class="subtle" id="charCount">0 words · 0 characters</span></div>
+        <textarea id="sourceText" placeholder="Paste or write the text you want to rewrite…" maxlength="30000"></textarea>
+        <div class="card-foot">
+          <label class="link-btn" for="fileInput"><svg class="ic"><use href="#i-upload"/></svg> Import .txt</label><input type="file" id="fileInput" accept=".txt,text/plain" hidden>
+          <button class="link-btn" id="clearInput">Clear</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-head"><strong>Previous section <span class="optional">Optional</span></strong><span class="subtle">For flow only</span></div>
+        <textarea id="previousText" placeholder="Paste the ending of the previous section. It guides the flow but won't be rewritten or repeated."></textarea>
+        <div class="card-foot tip">Helps the new section connect naturally to what came before.</div>
+      </section>
+    </div>
+
+    <div class="action-row">
+      <p class="privacy-note"><svg class="ic"><use href="#i-lock"/></svg> Your meaning and details are preserved.</p>
+      <button class="ghost-btn" id="cancelBtn" hidden>Cancel</button>
+      <button class="primary-btn" id="rewriteBtn" title="Ctrl+Enter"><svg class="ic"><use href="#i-spark"/></svg> Rewrite text <svg class="ic"><use href="#i-arrow"/></svg></button>
+    </div>
+
+    <div class="error-banner" id="errorBanner" role="alert" hidden></div>
+
+    <section class="card result" id="resultCard" hidden>
+      <div class="card-head">
+        <div class="result-title"><strong>Rewritten text</strong><span class="ready-tag">Ready</span><span class="change-stat" id="changeStats" hidden></span></div>
+        <div class="result-actions">
+          <button class="ghost-btn" id="regenBtn"><svg class="ic"><use href="#i-spark"/></svg> Regenerate</button>
+          <button class="ghost-btn" id="copyBtn"><svg class="ic"><use href="#i-copy"/></svg> Copy</button>
+          <button class="ghost-btn" id="downloadBtn"><svg class="ic"><use href="#i-down"/></svg> Export</button>
+        </div>
+      </div>
+      <div class="warn-banner" id="warnBanner" hidden></div>
+      <div class="result-content" id="resultText"></div>
+      <div class="card-foot"><span><span id="resultMeta">Your rewrite is ready.</span><span class="legend"><mark>Highlighted</mark> = changed words</span></span><button class="link-btn" id="useAsInput">Use as new input</button></div>
+    </section>
+  </section>
+
+  <section id="historyView" hidden>
+    <div class="hero left">
+      <h1>History</h1>
+      <p>Your latest 50 rewrites are saved locally on this computer.</p>
+    </div>
+    <div class="history-bar"><button class="link-btn danger" id="clearHistory">Clear history</button></div>
+    <div id="historyList" class="history-list"></div>
+    <div id="emptyHistory" class="empty-state">
+      <svg class="ic big"><use href="#i-clock"/></svg>
+      <strong>No rewrites yet</strong>
+      <p>Your saved rewrites will appear here.</p>
+      <button class="primary-btn" id="startFromHistory">Create a rewrite</button>
+    </div>
+  </section>
+</main>
+
+<footer class="foot"><span>© Humanly</span><span>Thoughtful edits. Original meaning.</span></footer>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
