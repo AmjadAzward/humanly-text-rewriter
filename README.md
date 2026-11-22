@@ -37,7 +37,8 @@ Runs fully on your own machine with a free local AI.
 
 ### Rewriting
 - **7 tones:** Natural, Professional, Friendly, Casual, Academic, Persuasive, Concise
-- **4 strengths:** Polish (fix grammar and clumsy phrasing only, your words stay), Light, Medium (reworded flow), Strong (sentences rebuilt)
+- **Rewrite levels:** Quality (light), Balanced (medium), Max (strong), plus Proofread only
+- **Writing levels:** Default, Simpler, General audience, Advanced
 - **Match my voice:** paste a sample of your own writing and rewrites follow your sentence style and word choice
 - **Review phrasing:** instant, model-free check that flags stiff phrases, very long sentences, repeated openers and monotone rhythm so you can fix them by hand
 - **Previous section field** so new text flows from what came before
@@ -45,10 +46,11 @@ Runs fully on your own machine with a free local AI.
 - **Regenerate** for a fresh take, **Cancel** for long jobs, **Ctrl+Enter** to run
 
 ### Accuracy
-- Long texts are processed in chunks of about 220 words so nothing gets skipped
+- Long texts are processed in chunks of about 220 words
 - Numbers, URLs and capitalized names are verified, and spelled-out numbers count as kept
-- Dropped or merged sentences are detected and retried
-- A warning banner appears if a rewrite cannot be fully verified
+- A separate model review checks claims, negation, dates, conditions, and unsupported additions; detected issues get one repair attempt
+- Light, Medium, and Strong rewrites are retried and flagged when they stay too close to the source
+- A warning banner appears if a rewrite cannot be fully verified. Model checks can still miss errors, so review important text.
 
 ### Review
 - Word-level diff with highlighted changes and a "X of Y words changed" count
@@ -57,7 +59,7 @@ Runs fully on your own machine with a free local AI.
 - History of the last 50 rewrites stored in local SQLite
 
 ### Interface
-- Clean, modern layout with automatic dark mode
+- Dark, cyan-accented responsive layout
 - Live word count, elapsed timer and section-by-section progress
 - Responsive on phone, tablet and desktop
 - Remembers your tone, strength and model
@@ -72,7 +74,7 @@ Runs fully on your own machine with a free local AI.
 - [Ollama](https://ollama.com), then pull a model:
 
 ```bash
-ollama pull qwen2.5:3b
+ollama pull qwen2.5:7b
 ```
 
 **2. Set up the project**
@@ -102,8 +104,8 @@ Edit `.env`, then restart the server.
 |---|---|---|
 | `AI_BASE_URL` | OpenAI-compatible API base URL | `http://127.0.0.1:11434/v1` |
 | `AI_API_KEY` | API key (any value works for Ollama) | `ollama` |
-| `AI_MODEL` | Default model | `qwen2.5:3b` |
-| `AI_MODELS` | Comma-separated list for the Model dropdown | `qwen2.5:3b,qwen2.5:7b` |
+| `AI_MODEL` | Default model | `qwen2.5:7b` |
+| `AI_MODELS` | Comma-separated list for the Model dropdown | `qwen2.5:7b,qwen2.5:3b` |
 | `SECRET_KEY` | Flask secret, change before public use | placeholder |
 
 Groq, OpenRouter and OpenAI also work. Change the three `AI_` values and restart.
@@ -114,8 +116,8 @@ Groq, OpenRouter and OpenAI also work. Change the three `AI_` values and restart
 
 | Model | Speed | Quality | Best for |
 |---|---|---|---|
-| `qwen2.5:3b` | Faster | Good | Everyday use, quick drafts |
-| `qwen2.5:7b` | Slower | Better | Important text, Strong rewrites |
+| `qwen2.5:3b` | Faster | Basic | Quick drafts on lower-resource machines |
+| `qwen2.5:7b` | Slower | Better | Better instruction following and detail retention |
 | Hosted models | Fastest | Best | Machines without a GPU |
 
 On a CPU-only computer the 7B model can take a few minutes for long texts. A GPU or a hosted model is much faster.

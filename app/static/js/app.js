@@ -5,13 +5,30 @@ const REWRITE_HTML = '<svg class="ic"><use href="#i-spark"/></svg> Rewrite text 
 
 const strengthDescriptions = {
   Polish: "Fixes grammar and clumsy phrasing only. Your own words stay.",
-  Light: "Small edits while keeping your original wording.",
-  Medium: "Balanced changes to wording and flow.",
-  Strong: "More noticeable rewriting while preserving the meaning."
+  Light: "A light rewrite that keeps close to your original wording.",
+  Medium: "A balanced rewrite with fresh wording and the same meaning.",
+  Strong: "A more substantial rewrite that preserves the meaning."
 };
 
+function syncRewriteLevel() {
+  document.querySelectorAll(".level-option").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.strength === $("strength").value));
+  });
+  $("polishOnlyBtn").setAttribute("aria-pressed", String($("strength").value === "Polish"));
+}
+document.querySelectorAll(".level-option").forEach((button) => {
+  button.addEventListener("click", () => {
+    $("strength").value = button.dataset.strength;
+    $("strength").dispatchEvent(new Event("change"));
+  });
+});
+$("polishOnlyBtn").addEventListener("click", () => {
+  $("strength").value = $("strength").value === "Polish" ? "Medium" : "Polish";
+  $("strength").dispatchEvent(new Event("change"));
+});
 $("strength").addEventListener("change", () => {
   $("strengthNote").textContent = strengthDescriptions[$("strength").value];
+  syncRewriteLevel();
 });
 $("sourceText").addEventListener("input", () => {
   const v = $("sourceText").value;
@@ -100,14 +117,17 @@ const SETTINGS_KEY = "humanly.settings";
 function saveSettings() {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-      tone: $("tone").value, strength: $("strength").value, model: $("model") ? $("model").value : ""
+      tone: $("tone").value,
+      strength: $("strength").value,
+      model: $("model") ? $("model").value : "",
+      writingLevel: $("writingLevel").value
     }));
   } catch (e) { /* storage unavailable */ }
 }
 function loadSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
-    ["tone", "strength", "model"].forEach((id) => {
+    ["tone", "strength", "model", "writingLevel"].forEach((id) => {
       const el = $(id);
       if (el && saved[id] && [...el.options].some((o) => o.value === saved[id])) el.value = saved[id];
     });
@@ -141,6 +161,7 @@ async function rewrite() {
         tone:$("tone").value,
         strength:$("strength").value,
         model:$("model") ? $("model").value : "",
+        writing_level:$("writingLevel").value,
         voice_sample:$("voiceSample").value,
         previous_text:$("previousText").value
       })
@@ -173,7 +194,7 @@ async function rewrite() {
     currentRewriteId = data.id;
     renderDiff(text, data.rewritten_text);
     showWarnings(data.warnings);
-    $("resultMeta").textContent = `${$("tone").value} tone · ${$("strength").value.toLowerCase()} rewrite`;
+    $("resultMeta").textContent = `${$("tone").value} tone · ${rewriteLevelLabel($("strength").value)}`;
     $("resultCard").hidden = false;
     $("resultCard").scrollIntoView({behavior:"smooth", block:"start"});
     refreshHistoryCount();
@@ -260,6 +281,10 @@ function renderDiff(original, rewritten) {
     else j++;
   }
 
+  function rewriteLevelLabel(strength) {
+    return {Polish:"Proofread only", Light:"Quality", Medium:"Balanced", Strong:"Max"}[strength] || strength;
+  }
+
   let changed = 0, wi = 0;
   const frag = document.createDocumentFragment();
   tokens.forEach((t, i) => {
@@ -330,7 +355,7 @@ async function loadHistory() {
     preview.textContent = item.rewritten_text.slice(0, 150);
     const meta = document.createElement("div");
     meta.className = "history-meta";
-    meta.textContent = `${item.tone} · ${item.strength} · ${item.created_at}`;
+    meta.textContent = `${item.tone} · ${rewriteLevelLabel(item.strength)} · ${item.created_at}`;
     info.append(title, preview, meta);
     const actions = document.createElement("div");
     actions.className = "history-buttons";
@@ -360,7 +385,7 @@ async function openHistoryItem(id) {
   $("strength").dispatchEvent(new Event("change"));
   renderDiff(item.original_text, item.rewritten_text);
   showWarnings([]);
-  $("resultMeta").textContent = `${item.tone} tone · ${item.strength.toLowerCase()} rewrite`;
+  $("resultMeta").textContent = `${item.tone} tone · ${rewriteLevelLabel(item.strength)}`;
   currentRewriteId = item.id;
   $("resultCard").hidden = false;
   showEditor();

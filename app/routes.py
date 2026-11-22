@@ -11,10 +11,12 @@ main = Blueprint("main", __name__)
 
 TONES = ["Natural", "Professional", "Friendly", "Casual", "Academic", "Persuasive", "Concise"]
 STRENGTHS = ["Polish", "Light", "Medium", "Strong"]
+WRITING_LEVELS = ["Default", "Simpler", "General", "Advanced"]
 
 @main.get("/")
 def index():
-    return render_template("index.html", tones=TONES, strengths=STRENGTHS, models=available_models())
+    return render_template("index.html", tones=TONES, strengths=STRENGTHS, writing_levels=WRITING_LEVELS,
+                           models=available_models())
 
 @main.post("/api/review")
 def api_review():
@@ -46,16 +48,18 @@ def api_rewrite_stream():
     original = (data.get("text") or "").strip()
     tone = data.get("tone", "Natural")
     strength = data.get("strength", "Medium")
+    writing_level = data.get("writing_level", "Default")
     previous = (data.get("previous_text") or "").strip()
-    if not original or len(original) > 30000 or tone not in TONES or strength not in STRENGTHS:
-        return jsonify(error="Enter valid text (up to 30,000 characters), tone and strength."), 400
+    if (not original or len(original) > 30000 or tone not in TONES or strength not in STRENGTHS
+            or writing_level not in WRITING_LEVELS):
+        return jsonify(error="Enter valid text (up to 30,000 characters), tone, rewrite level and writing level."), 400
     model = _pick_model(data)
     voice = (data.get("voice_sample") or "").strip()
 
     def generate():
         parts, warnings = [], []
         try:
-            for number, total, chunk, note in rewrite_iter(original, tone, strength, previous, model, voice):
+            for number, total, chunk, note in rewrite_iter(original, tone, strength, previous, model, voice, writing_level):
                 parts.append(chunk)
                 if note:
                     warnings.append(f"Section {number}: {note}.")
@@ -80,17 +84,18 @@ def api_rewrite():
     original = (data.get("text") or "").strip()
     tone = data.get("tone", "Natural")
     strength = data.get("strength", "Medium")
+    writing_level = data.get("writing_level", "Default")
     previous = (data.get("previous_text") or "").strip()
 
     if not original:
         return jsonify(error="Enter some text to rewrite."), 400
     if len(original) > 30000:
         return jsonify(error="Please keep the text under 30,000 characters."), 400
-    if tone not in TONES or strength not in STRENGTHS:
-        return jsonify(error="Choose a valid tone and rewrite strength."), 400
+    if tone not in TONES or strength not in STRENGTHS or writing_level not in WRITING_LEVELS:
+        return jsonify(error="Choose a valid tone, rewrite level and writing level."), 400
     try:
         rewritten, warnings = rewrite_text(original, tone, strength, previous, _pick_model(data),
-                                          (data.get("voice_sample") or "").strip())
+                                          (data.get("voice_sample") or "").strip(), writing_level)
         with get_db() as conn:
             cursor = conn.execute(
                 """INSERT INTO rewrites

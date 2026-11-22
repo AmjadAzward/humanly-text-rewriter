@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Humanly rewrites your text in a natural, human voice while keeping your meaning.">
-  <meta name="theme-color" content="#6366f1">
-  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Rewrite your text in a natural voice while keeping your original meaning.">
+  <meta name="theme-color" content="#202326">
+  <meta name="color-scheme" content="dark">
   <title>Humanly — Write like a human</title>
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='favicon.svg') }}">
@@ -44,8 +44,8 @@
 <main class="page">
   <section id="editorView">
     <div class="hero">
-      <h1>Make it sound <span class="grad">like you.</span></h1>
-      <p>Paste your text, pick a tone, and get a natural rewrite that keeps your meaning.</p>
+      <h1>Humanize your text</h1>
+      <p>Turn stiff drafts into clear, natural writing—without losing your meaning.</p>
     </div>
 
     <div class="controls">
@@ -54,9 +54,21 @@
           {% for tone in tones %}<option value="{{ tone }}">{{ tone }}</option>{% endfor %}
         </select>
       </label>
-      <label class="field"><span>Strength</span>
-        <select id="strength">
+      <div class="field level-field">
+        <span id="rewriteLevelLabel">Rewrite level</span>
+        <div class="level-selector" role="group" aria-labelledby="rewriteLevelLabel">
+          <button class="level-option" type="button" data-strength="Light" aria-pressed="false">Quality</button>
+          <button class="level-option active" type="button" data-strength="Medium" aria-pressed="true">Balanced</button>
+          <button class="level-option" type="button" data-strength="Strong" aria-pressed="false">Max</button>
+        </div>
+        <button class="polish-toggle" id="polishOnlyBtn" type="button" aria-pressed="false">Proofread only</button>
+        <select id="strength" hidden aria-hidden="true">
           {% for strength in strengths %}<option value="{{ strength }}" {% if strength == 'Medium' %}selected{% endif %}>{{ strength }}</option>{% endfor %}
+        </select>
+      </div>
+      <label class="field"><span>Writing level</span>
+        <select id="writingLevel">
+          {% for level in writing_levels %}<option value="{{ level }}">{{ "General audience" if level == "General" else level }}</option>{% endfor %}
         </select>
       </label>
       {% if models|length > 1 %}
@@ -69,32 +81,32 @@
       <p class="strength-note" id="strengthNote">Balanced changes to wording and flow.</p>
     </div>
 
+    <details class="card voice-card">
+      <summary><strong>Custom style</strong><span class="optional">Optional</span><span class="subtle">Match your writing voice</span></summary>
+      <textarea id="voiceSample" placeholder="Paste a few paragraphs you wrote yourself. Rewrites will follow your sentence style, word choice and tone, without copying your content." maxlength="6000"></textarea>
+    </details>
+
     <div class="editor-grid">
       <section class="card">
-        <div class="card-head"><strong>Original text</strong><span class="subtle" id="charCount">0 words · 0 characters</span></div>
-        <textarea id="sourceText" placeholder="Paste or write the text you want to rewrite…" maxlength="30000"></textarea>
+        <div class="card-head"><strong>Your text</strong><span class="subtle" id="charCount">0 words · 0 characters</span></div>
+        <textarea id="sourceText" placeholder="Paste or write your text here…" maxlength="30000"></textarea>
         <div class="card-foot">
           <label class="link-btn" for="fileInput"><svg class="ic"><use href="#i-upload"/></svg> Import .txt</label><input type="file" id="fileInput" accept=".txt,text/plain" hidden>
           <button class="link-btn" id="reviewBtn">Review phrasing</button>
           <button class="link-btn" id="clearInput">Clear</button>
         </div>
       </section>
-      <section class="card">
-        <div class="card-head"><strong>Previous section <span class="optional">Optional</span></strong><span class="subtle">For flow only</span></div>
+      <details class="card context-card">
+        <summary><strong>Previous section</strong><span class="optional">Optional</span><span class="subtle">For flow only</span></summary>
         <textarea id="previousText" placeholder="Paste the ending of the previous section. It guides the flow but won't be rewritten or repeated."></textarea>
         <div class="card-foot tip">Helps the new section connect naturally to what came before.</div>
-      </section>
+      </details>
     </div>
 
     <section class="card review-panel" id="reviewPanel" hidden>
       <div class="card-head"><strong>Phrasing review</strong><button class="link-btn" id="closeReview">Close</button></div>
       <div id="reviewList" class="review-list"></div>
     </section>
-
-    <details class="card voice-card">
-      <summary><strong>Match my voice</strong><span class="optional">Optional</span><span class="subtle">Paste a sample of your own writing</span></summary>
-      <textarea id="voiceSample" placeholder="Paste a few paragraphs you wrote yourself. Rewrites will follow your sentence style, word choice and tone, without copying your content." maxlength="6000"></textarea>
-    </details>
 
     <div class="action-row">
       <p class="privacy-note"><svg class="ic"><use href="#i-lock"/></svg> Your meaning and details are preserved.</p>
