@@ -52,9 +52,11 @@ class ReviewAndVoiceTests(unittest.TestCase):
         self.assertIn("common words", prompt)
 
     def test_natural_prompt_avoids_forced_style_changes(self):
-        from app.prompt import SYSTEM_PROMPT, TONE_GUIDE
-        self.assertIn("don't impose a pattern", SYSTEM_PROMPT)
-        self.assertIn("point of view and emphasis", SYSTEM_PROMPT)
+        from app.prompt import SYSTEM_PROMPT, STRENGTH_GUIDE
+        self.assertIn("instead of forcing variation", SYSTEM_PROMPT)
+        self.assertIn("sentence-by-sentence paraphraser", SYSTEM_PROMPT)
+        self.assertIn("don't swap in synonyms just to make the text different", STRENGTH_GUIDE["Medium"])
+        self.assertIn("level of formality", SYSTEM_PROMPT)
 
     def test_polish_strength_has_guide(self):
         from app.prompt import STRENGTH_GUIDE
